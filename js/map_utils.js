@@ -26,9 +26,7 @@ class Map{
         this.draw_grid();
         this.draw_all_objects();
     }
-    resize_map_container() {
 
-    }
     draw_background() {
         this.map_container.addChild(this.background);
     }
@@ -61,7 +59,7 @@ class Map{
                     starts_i++
                     break;
                 case "Fire_RolePolygon":
-                    this.fires.push(new Fire(this.scale, 'fire'));
+                    this.fires.push(new Fire(this.scale, 'boom'));
             }
         })
     }
@@ -124,6 +122,11 @@ class Map{
     draw_boxes() {
         this.fabrics.forEach(fabric => {
             fabric.cargo_array.forEach(cargo => {
+                this.map_container.addChild(cargo.bitmap);
+            });
+        });
+        this.villages.forEach(village => {
+            village.cargo_array.forEach(cargo => {
                 this.map_container.addChild(cargo.bitmap);
             });
         });
@@ -211,11 +214,19 @@ class Moving_Object extends Polygon_Object {
         super(scale, type, scale_koef);
         this.angle = 0;
         this.is_cargo = false;
-        this.cargo = new Box(0, 'green')
-        this.cargo_init_flag = false;
+        this.cargo = new Box(0, '')
+        this.color_cargo = ''
     }
-    set_cargo(cargo) {
-        this.cargo = cargo;
+    set_cargo(data) {
+        if (this.is_cargo) {
+            this.color_cargo = rgb_parser(data.color_cargo);
+            if (this.cargo.scale === 0) {
+                this.cargo = new Box(this.scale, this.color_cargo);
+            }
+            this.cargo.set_coordinates(this.x, this.y, this.angle);
+        } else {
+            this.cargo = new Box(0, '');
+        }
     }
     draw() {
         createjs.Tween.get(this.bitmap).to({
@@ -223,15 +234,18 @@ class Moving_Object extends Polygon_Object {
             y: (this.locus_y + this.y) * this.scale,
             rotation: this.angle * 180 / Math.PI
         }, 200);
-        this.cargo.set_coordinates(this.x, this.y, this.angle);
-        this.cargo.draw(1.5, 1.5, this.bitmap.regX, this.bitmap.regY);
+        if (this.is_cargo) {
+            this.cargo.set_coordinates(this.x, this.y, this.angle);
+            this.cargo.draw(1.25, -1.25, this.bitmap.regX, this.bitmap.regY);
+        }
     }
     set_data(data) {
         this.x = data.current_pos[0];
         this.y = -data.current_pos[1];
         this.angle = data.current_pos[3]
         this.is_cargo = data.is_cargo;
-        this.cargo.set_coordinates(this.x, this.y, this.angle);
+        this.set_cargo(data);
+
         // if (this.is_cargo && !this.cargo_init_flag) {
         //     this.init_cargo(rgb_parser(data.color_cargo) + '_box');
         //     this.cargo_init_flag = true;
@@ -253,16 +267,28 @@ class Fabric extends Polygon_Object {
         this.cargo_array = [];
     }
     get_cargo_data(role_data) {
-        this.num_cargo = role_data.num_cargo;
         this.cargo_color = rgb_parser(role_data.current_cargo_color);
         this.is_cargo = role_data.is_cargo;
         this.conditions = role_data.current_conditions;
-        this.create_cargo();
+        this.set_num_cargo(role_data.num_cargo);
+
     }
     create_cargo() {
         for (let i = 0; i < this.num_cargo; i++) {
             this.cargo_array.push(new Box(this.scale, this.cargo_color));
         }
+    }
+    set_num_cargo(new_num_cargo) {
+        if (this.num_cargo < new_num_cargo ) {
+            for (let i = this.num_cargo; i < new_num_cargo; i++) {
+                this.cargo_array.push(new Box(this.scale, this.cargo_color));
+            }
+        } else if (this.num_cargo > new_num_cargo) {
+            for (let i = this.num_cargo; i > new_num_cargo; i--) {
+                this.cargo_array.pop();
+            }
+        }
+        this.num_cargo = new_num_cargo;
     }
     draw() {
         createjs.Tween.get(this.bitmap).to({
@@ -287,16 +313,40 @@ class Fabric extends Polygon_Object {
 class Village extends Polygon_Object {
     constructor(scale, type, scale_koef = 0.9) {
         super(scale, type, scale_koef);
+        this.cargo_num = [];
+        this.cargo_color = [];
+        this.cargo_flag = [false, false, false, false];
+        this.cargo_array = [];
     }
     draw() {
         createjs.Tween.get(this.bitmap).to({
             x: (this.locus_x + this.x) * this.scale,
             y: (this.locus_y + this.y) * this.scale,
         }, 200);
+
+        for (let i = 0; i < this.cargo_array.length; i++) {
+            this.cargo_array[i].draw(2 * box_distribution_x(i), 2 * box_distribution_y(i), this.bitmap.regX, this.bitmap.regY);
+        }
+    }
+    set_num_cargo() {
+        for (let i = 0; i < this.cargo_num.length; i++) {
+            if (this.cargo_num[i] > 0) {
+                if (!this.cargo_flag[i]) {
+                    this.cargo_array.push(new Box(this.scale, this.cargo_color[i]));
+                    this.cargo_flag[i] = true;
+                }
+            }
+        }
     }
     set_data(data) {
         this.x = data.current_pos[0];
         this.y = -data.current_pos[1];
+        this.cargo_color = Object.keys(data.role_data.cargo);
+        this.cargo_num = Object.values(data.role_data.cargo);
+        this.set_num_cargo();
+        this.cargo_array.forEach(cargo => {
+            cargo.set_coordinates(this.x, this.y, this.angle);
+        });
     }
 }
 
@@ -409,9 +459,9 @@ function add_keyboard(map, drone_number) {
                 map.moving_objects[drone_number].angle += 0.15;
                 break;
             case 'KeyF':
-                map.moving_objects[drone_number].set_cargo(map.fabrics[1].cargo_array[3]);
+                map.moving_objects[drone_number].set_cargo(map.fabrics[1].cargo_array[2]);
                 console.log(map.moving_objects[drone_number].cargo);
-                map.fabrics[1].cargo_array.pop();
+                map.fabrics[1].set_num_cargo(0);
                 break;
             case 'KeyG':
                 map.fires[0].x = 5

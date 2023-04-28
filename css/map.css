@@ -3,9 +3,16 @@
     height: 0px;
 }
 
+#map_div{
+    width: 55%;
+    height: 100%;
+}
+
 #map{
     position: absolute;
     top: 0px;
     left: 0px;
+    height: 1080px;
+    width: 1080px;
 }
 

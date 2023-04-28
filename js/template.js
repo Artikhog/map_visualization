@@ -10,11 +10,11 @@ function start() {
     var map = new Map(canvas, stage, page_height);
     add_keyboard(map, 0)
     get_objects(map);
+    get_info(map);
     map.update();
 
     setInterval(function () {
         get_info(map);
-        // map.draw_fires();
         map.update();
     }, 300);
 
@@ -41,6 +41,8 @@ function get_info(map) {
                 status: response.status
             })
         ).then(res => {
+
+            document.getElementById('description').innerText = res.data.server_info.game_description
             document.getElementById('team_name').innerText = `Команда: ${res.data.team_info.Blue.name_team}`
             document.getElementById('points').innerText = `Баллы: ${res.data.team_info.Blue.balls_team}`
             document.getElementById('time').innerText = `Время: ${res.data.server_info.gameTime}`

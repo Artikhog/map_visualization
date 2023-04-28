@@ -2,7 +2,7 @@
     position: absolute;
     right: 0px;
     top: 0px;
-    width: 672px;
+    width: 45%;
     height: 100%;
 
     background: #5F5F5F;
@@ -21,7 +21,7 @@
 
 .info_div span{
     position: absolute;
-    width: 60%;
+    width: 80%;
     height: 25%;
     bottom: 50%;
     left: 5%;
@@ -36,7 +36,7 @@
     top: 0px;
 }
 
-#phase_name_div{
+#description_div{
     top: 137px;
 }
 
@@ -51,4 +51,5 @@
 #time{
     left: 50%;
 }
+
 
