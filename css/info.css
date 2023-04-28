@@ -1,0 +1,54 @@
+#information_div{
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    width: 672px;
+    height: 100%;
+
+    background: #5F5F5F;
+}
+
+.info_div{
+    position: absolute;
+    width: 100%;
+    height: 100px;
+    right: 0px;
+
+
+    background: #FFFFFF;
+    border-radius: 40px;
+}
+
+.info_div span{
+    position: absolute;
+    width: 60%;
+    height: 25%;
+    bottom: 50%;
+    left: 5%;
+
+    font-style: normal;
+    font-weight: 400;
+    font-size: 32px;
+    line-height: 47px;
+}
+
+#cyber_drom_name_div{
+    top: 0px;
+}
+
+#phase_name_div{
+    top: 137px;
+}
+
+#team_name_div {
+    top: 274px;
+}
+
+#time_points_div {
+    top: 411px;
+}
+
+#time{
+    left: 50%;
+}
+
