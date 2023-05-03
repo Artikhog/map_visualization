@@ -55,7 +55,7 @@ class Map{
                     this.villages.push(new Village(this.scale, 'village'));
                     break;
                 case "TakeoffArea_RolePolygon":
-                    this.starts.push(new Polygon_Object(this.scale, `blue_start${starts_i}`));
+                    this.starts.push(new Polygon_Object(this.scale, `start${starts_i}`));
                     starts_i++
                     break;
                 case "Fire_RolePolygon":
@@ -236,7 +236,7 @@ class Moving_Object extends Polygon_Object {
         }, 200);
         if (this.is_cargo) {
             this.cargo.set_coordinates(this.x, this.y, this.angle);
-            this.cargo.draw(1.25, -1.25, this.bitmap.regX, this.bitmap.regY);
+            this.cargo.draw(0.5, -0.5, this.bitmap.regX, this.bitmap.regY);
         }
     }
     set_data(data) {
