@@ -474,15 +474,17 @@ function add_keyboard(map, drone_number) {
 }
 
 function rgb_parser(rgb_array) {
-    if (rgb_array[0] === 255 && rgb_array[1] === 255) {
+    if (rgb_array[0] === 255 && rgb_array[1] === 255 && rgb_array[2] === 0) {
         return 'yellow';
-    } else if (rgb_array[1] === 255) {
+    } else if (rgb_array[0] === 0 && rgb_array[1] === 255 && rgb_array[2] === 0) {
         return 'green';
-    } else if (rgb_array[2] === 255) {
+    } else if (rgb_array[0] === 0 && rgb_array[1] === 0 && rgb_array[2] === 255) {
         return 'blue';
-    } else if (rgb_array[0] === 255) {
+    } else if (rgb_array[0] === 255 && rgb_array[1] === 0 && rgb_array[2] === 0) {
         return 'red';
-    }
+    } else if (rgb_array[0] === 255 && rgb_array[1] === 102 && rgb_array[2] === 0) {
+        return 'orange';
+}
     return '';
 }
 
