@@ -17,7 +17,9 @@ function start() {
     setInterval(function () {
         get_info(map);
         map.update();
-    }, 300);
+    }, 100);
+
+
 
 }
 
@@ -33,7 +35,7 @@ function get_objects(map) {
                 status: response.status
             })
         ).then(res => {
-            map.add_moving_objects(res.data.team_info.Blue.players);
+            map.add_moving_objects(res.data.team_info.PepegaTeam.players);
             map.add_polygon_objects(res.data.polygon_info);
         }).catch(function (e) {
             console.log(e)
@@ -49,10 +51,10 @@ function get_info(map) {
         ).then(res => {
 
             document.getElementById('description').innerText = res.data.server_info.game_description
-            document.getElementById('team_name').innerText = `Команда: ${res.data.team_info.Blue.name_team}`
-            document.getElementById('points').innerText = `Баллы: ${res.data.team_info.Blue.balls_team}`
-            document.getElementById('time').innerText = `Время: ${res.data.server_info.gameTime}`
-            map.parse_data(res.data.team_info.Blue.players, res.data.polygon_info);
+            document.getElementById('team_name').innerText = `${res.data.team_info.PepegaTeam.name_team}`
+            document.getElementById('points').innerText = `${res.data.team_info.PepegaTeam.balls_team}`
+            document.getElementById('time').innerText = `${res.data.server_info.gameTime}`
+            map.parse_data(res.data.team_info.PepegaTeam.players, res.data.polygon_info);
         }).catch(function (e) {
             console.log(e)
         }));

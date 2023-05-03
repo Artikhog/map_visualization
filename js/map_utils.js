@@ -6,7 +6,7 @@ class Map{
         this.meter_size = meter_size;
         this.scale = size / meter_size;
         this.map_container = new createjs.Container();
-        this.background = new createjs.Bitmap(document.getElementById('black_background'));
+        this.background = new createjs.Bitmap(document.getElementById('phase4_background'));
         this.moving_objects = [];
         this.starts = [];
         this.fires = [];
@@ -52,14 +52,18 @@ class Map{
                     this.fabrics.push(fabric);
                     break;
                 case "Village_RolePolygon":
-                    this.villages.push(new Village(this.scale, 'village'));
+                    if (element.description === "Деревня") {
+                        this.villages.push(new Village(this.scale, 'village'));
+                    } else if (element.description === "Магазин") {
+                        this.villages.push(new Village(this.scale, 'market'));
+                    }
                     break;
                 case "TakeoffArea_RolePolygon":
                     this.starts.push(new Polygon_Object(this.scale, `start${starts_i}`));
                     starts_i++
                     break;
                 case "Fire_RolePolygon":
-                    this.fires.push(new Fire(this.scale, 'boom'));
+                    this.fires.push(new Fire(this.scale, 'fire'));
             }
         })
     }
@@ -71,10 +75,10 @@ class Map{
                     this.moving_objects.push(new Moving_Object(this.scale, 'drone'));
                     break;
                 case "PioneerObject":
-                    this.moving_objects.push(new Moving_Object(this.scale, 'drone'));
+                    this.moving_objects.push(new Moving_Object(this.scale, 'drone', 0.5));
                     break;
                 case "EduBotObject":
-                    this.moving_objects.push(new Moving_Object(this.scale, 'car'));
+                    this.moving_objects.push(new Moving_Object(this.scale, 'car', 0.6));
                     break;
             }
         })
@@ -185,7 +189,7 @@ class Map{
 }
 
 class Polygon_Object{
-    constructor(scale, type, scale_koef = 0.9, locus_x = 5.5, locus_y = 5.5) {
+    constructor(scale, type, scale_koef = 0.7, locus_x = 5.5, locus_y = 5.5) {
         this.x = 0;
         this.y = 0;
         this.scale = scale;
@@ -210,7 +214,7 @@ class Polygon_Object{
 }
 
 class Moving_Object extends Polygon_Object {
-    constructor(scale, type, scale_koef = 0.35, bitmap_scale_koef=0.3) {
+    constructor(scale, type, scale_koef = 0.3) {
         super(scale, type, scale_koef);
         this.angle = 0;
         this.is_cargo = false;
@@ -258,7 +262,7 @@ class Moving_Object extends Polygon_Object {
 }
 
 class Fabric extends Polygon_Object {
-    constructor(scale, type, scale_koef = 1.1) {
+    constructor(scale, type, scale_koef = 0.7) {
         super(scale, type, scale_koef);
         this.num_cargo = 0;
         this.cargo_color = '';
@@ -299,10 +303,10 @@ class Fabric extends Polygon_Object {
     }
     draw_cargo() {
         const rads = 2 * Math.PI / this.cargo_array.length;
-        const radius = this.scale_koef * 2
+        const radius = this.scale_koef * 1.5
         let rotation_angle, cargo_bitmap_x, cargo_bitmap_y
         for (let i = 0; i < this.cargo_array.length; i++) {
-            rotation_angle = rads + rads * i;
+            rotation_angle = rads + Math.PI / 4 + rads * i;
             cargo_bitmap_x = Math.sin(rotation_angle) * radius
             cargo_bitmap_y = Math.cos(rotation_angle) * radius
             this.cargo_array[i].draw(cargo_bitmap_x, cargo_bitmap_y, this.bitmap.regX, this.bitmap.regY);
@@ -311,7 +315,7 @@ class Fabric extends Polygon_Object {
     set_data(data) {
         this.x = data.current_pos[0];
         this.y = -data.current_pos[1];
-        this.set_num_cargo(data.role_data);
+        this.set_num_cargo(data.role_data.num_cargo);
         this.cargo_array.forEach(cargo => {
             cargo.set_coordinates(this.x, this.y, this.angle);
         });
@@ -319,7 +323,7 @@ class Fabric extends Polygon_Object {
 }
 
 class Village extends Polygon_Object {
-    constructor(scale, type, scale_koef = 0.9) {
+    constructor(scale, type, scale_koef = 0.8) {
         super(scale, type, scale_koef);
         this.cargo_num = [];
         this.cargo_color = [];
@@ -346,7 +350,7 @@ class Village extends Polygon_Object {
     }
     draw_cargo() {
         const rads = 2 * Math.PI / this.cargo_array.length;
-        const radius = this.scale_koef * 2
+        const radius = this.scale_koef * 1.5
         let rotation_angle, cargo_bitmap_x, cargo_bitmap_y
         for (let i = 0; i < this.cargo_array.length; i++) {
             rotation_angle = rads + rads * i;
@@ -423,7 +427,7 @@ class Fire extends Polygon_Object{
 }
 
 class Box{
-    constructor(scale, color, scale_koef = 0.3, locus_x = 5.5, locus_y = 5.5) {
+    constructor(scale, color, scale_koef = 0.5, locus_x = 5.5, locus_y = 5.5) {
         this.x = 0;
         this.y = 0;
         this.angle = 0;
@@ -447,16 +451,6 @@ class Box{
             regY: y_offset * this.scale + regY,
             rotation: this.angle * 180 / Math.PI,
         }, 200);
-    }
-    draw_circle(radius, angle, regX, regY) {
-        createjs.Tween.get(this.bitmap).to({
-            x: (this.locus_x + this.x) * this.scale,
-            y: (this.locus_y + this.y) * this.scale,
-            rotation: angle * 180 / Math.PI,
-        }, 200);
-        this.bitmap.regX = regX + radius * this.scale
-        this.bitmap.regY = regY
-        console.log(this.bitmap.x, this.bitmap.y, this.bitmap.rotation, this.bitmap.regX, this.bitmap.regY)
     }
     set_coordinates(x, y, angle) {
         this.x = x;
