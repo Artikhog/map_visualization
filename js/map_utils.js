@@ -271,7 +271,6 @@ class Fabric extends Polygon_Object {
         this.is_cargo = role_data.is_cargo;
         this.conditions = role_data.current_conditions;
         this.set_num_cargo(role_data.num_cargo);
-
     }
     create_cargo() {
         for (let i = 0; i < this.num_cargo; i++) {
@@ -296,14 +295,23 @@ class Fabric extends Polygon_Object {
             y: (this.locus_y + this.y) * this.scale,
             rotation: this.angle * 180 / Math.PI
         }, 200);
-
+        this.draw_cargo();
+    }
+    draw_cargo() {
+        const rads = 2 * Math.PI / this.cargo_array.length;
+        const radius = this.scale_koef * 2
+        let rotation_angle, cargo_bitmap_x, cargo_bitmap_y
         for (let i = 0; i < this.cargo_array.length; i++) {
-            this.cargo_array[i].draw(2 * box_distribution_x(i), 2 * box_distribution_y(i), this.bitmap.regX, this.bitmap.regY);
+            rotation_angle = rads + rads * i;
+            cargo_bitmap_x = Math.sin(rotation_angle) * radius
+            cargo_bitmap_y = Math.cos(rotation_angle) * radius
+            this.cargo_array[i].draw(cargo_bitmap_x, cargo_bitmap_y, this.bitmap.regX, this.bitmap.regY);
         }
     }
     set_data(data) {
         this.x = data.current_pos[0];
         this.y = -data.current_pos[1];
+        this.set_num_cargo(data.role_data);
         this.cargo_array.forEach(cargo => {
             cargo.set_coordinates(this.x, this.y, this.angle);
         });
@@ -318,16 +326,6 @@ class Village extends Polygon_Object {
         this.cargo_flag = [false, false, false, false];
         this.cargo_array = [];
     }
-    draw() {
-        createjs.Tween.get(this.bitmap).to({
-            x: (this.locus_x + this.x) * this.scale,
-            y: (this.locus_y + this.y) * this.scale,
-        }, 200);
-
-        for (let i = 0; i < this.cargo_array.length; i++) {
-            this.cargo_array[i].draw(2 * box_distribution_x(i), 2 * box_distribution_y(i), this.bitmap.regX, this.bitmap.regY);
-        }
-    }
     set_num_cargo() {
         for (let i = 0; i < this.cargo_num.length; i++) {
             if (this.cargo_num[i] > 0) {
@@ -336,6 +334,25 @@ class Village extends Polygon_Object {
                     this.cargo_flag[i] = true;
                 }
             }
+        }
+    }
+    draw() {
+        createjs.Tween.get(this.bitmap).to({
+            x: (this.locus_x + this.x) * this.scale,
+            y: (this.locus_y + this.y) * this.scale,
+        }, 200);
+
+        this.draw_cargo()
+    }
+    draw_cargo() {
+        const rads = 2 * Math.PI / this.cargo_array.length;
+        const radius = this.scale_koef * 2
+        let rotation_angle, cargo_bitmap_x, cargo_bitmap_y
+        for (let i = 0; i < this.cargo_array.length; i++) {
+            rotation_angle = rads + rads * i;
+            cargo_bitmap_x = Math.sin(rotation_angle) * radius
+            cargo_bitmap_y = Math.cos(rotation_angle) * radius
+            this.cargo_array[i].draw(cargo_bitmap_x, cargo_bitmap_y, this.bitmap.regX, this.bitmap.regY);
         }
     }
     set_data(data) {
@@ -431,6 +448,16 @@ class Box{
             rotation: this.angle * 180 / Math.PI,
         }, 200);
     }
+    draw_circle(radius, angle, regX, regY) {
+        createjs.Tween.get(this.bitmap).to({
+            x: (this.locus_x + this.x) * this.scale,
+            y: (this.locus_y + this.y) * this.scale,
+            rotation: angle * 180 / Math.PI,
+        }, 200);
+        this.bitmap.regX = regX + radius * this.scale
+        this.bitmap.regY = regY
+        console.log(this.bitmap.x, this.bitmap.y, this.bitmap.rotation, this.bitmap.regX, this.bitmap.regY)
+    }
     set_coordinates(x, y, angle) {
         this.x = x;
         this.y = y;
@@ -464,7 +491,9 @@ function add_keyboard(map, drone_number) {
                 map.fabrics[1].set_num_cargo(0);
                 break;
             case 'KeyG':
-                map.fires[0].x = 5
+                console.log(map.fabrics[1].num_cargo)
+                map.fabrics[1].set_num_cargo(0)
+                console.log(map.fabrics[1].num_cargo)
                 break
             case 'KeyH':
                 map.fires[0].is_alive = false;
@@ -486,16 +515,6 @@ function rgb_parser(rgb_array) {
         return 'orange';
 }
     return '';
-}
-
-function box_distribution_x(i) {
-    let x = (-1) ** (i % 2);
-    return x
-}
-
-function box_distribution_y(i) {
-    let y = (-1) ** (Math.round(i/2))
-    return y
 }
 
 function add_ticker(stage, framerate = 60) {
