@@ -52,6 +52,7 @@ function get_info(map) {
 
             document.getElementById('description').innerText = res.data.server_info.game_description
             document.getElementById('team_name').innerText = `${res.data.team_info.PepegaTeam.name_team}`
+            document.getElementById('team_city').innerText = `${res.data.team_info.PepegaTeam.city_team}`
             document.getElementById('points').innerText = `${res.data.team_info.PepegaTeam.balls_team}`
             document.getElementById('time').innerText = `${res.data.server_info.gameTime}`
             map.parse_data(res.data.team_info.PepegaTeam.players, res.data.polygon_info);
