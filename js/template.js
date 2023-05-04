@@ -50,7 +50,7 @@ function get_info(map) {
             })
         ).then(res => {
 
-            document.getElementById('description').innerText = res.data.server_info.game_description
+            // document.getElementById('description').innerText = res.data.server_info.game_description
             document.getElementById('team_name').innerText = `${res.data.team_info.PepegaTeam.name_team}`
             document.getElementById('team_city').innerText = `${res.data.team_info.PepegaTeam.city_team}`
             document.getElementById('points').innerText = `${res.data.team_info.PepegaTeam.balls_team}`

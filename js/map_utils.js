@@ -63,7 +63,7 @@ class Map{
                     starts_i++
                     break;
                 case "Fire_RolePolygon":
-                    this.fires.push(new Fire(this.scale, 'fire'));
+                    this.fires.push(new Fire(this.scale, 'boom'));
             }
         })
     }
