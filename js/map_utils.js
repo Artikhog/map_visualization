@@ -1,13 +1,13 @@
 class Map{
     constructor(canvas, stage, size, meter_size = 11) {
-        this.canvas = canvas;
-        this.stage = stage;
-        this.size = size;
-        this.meter_size = meter_size;
-        this.scale = size / meter_size;
-        this.map_container = new createjs.Container();
-        this.background = new createjs.Bitmap(document.getElementById('phase4_background'));
-        this.moving_objects = [];
+        this.canvas = canvas;   //html элемент для отрисовки
+        this.stage = stage;   // объект createjs для отрисовки к нему крепятся остальные элементы
+        this.size = size; // размер карты в пикселях
+        this.meter_size = meter_size; //размер реальной карты в метрах
+        this.scale = size / meter_size; //маштаб между реальным и пикселями
+        this.map_container = new createjs.Container(); // контейнер для элементов, крепится к stage
+        this.background = new createjs.Bitmap(document.getElementById('phase4_background')); // картинка для фона карты
+        this.moving_objects = []; //
         this.starts = [];
         this.fires = [];
         this.fabrics = [];
@@ -15,9 +15,17 @@ class Map{
         this.boxes = [];
         this.init();
     }
+    /**
+     * Функция изменения размеров фона под карту
+     * @author   ArtiKhog
+     */
     init() {
         this.background.scaleX = this.background.scaleY = this.size / 1080;
     }
+    /**
+     * Функция для обновления карты после получения данных
+     * @author   ArtiKhog
+     */
     update() {
         this.map_container.removeAllChildren();
         this.stage.removeAllChildren();
@@ -26,10 +34,17 @@ class Map{
         this.draw_grid();
         this.draw_all_objects();
     }
-
+    /**
+     * Функция для добавления к map_container фона
+     * @author   ArtiKhog
+     */
     draw_background() {
         this.map_container.addChild(this.background);
     }
+    /**
+     * Функция для отрисовки сетки поверх карты
+     * @author   ArtiKhog
+     */
     draw_grid() {
         for (let i = 1; i < this.meter_size; i++) {
             var line = new createjs.Shape();
@@ -41,19 +56,41 @@ class Map{
             this.map_container.addChild(line);
         }
     }
+    /**
+     * @author ArtiKhog
+     * @params polygon_data     данные полигона из json
+     * Функция для создания объектов полигона из полученных данных
+     */
     add_polygon_objects(polygon_data) {
         const polygon_objects_array =  Object.values(polygon_data);
         let starts_i = 1;
         polygon_objects_array.forEach(element => {
-            switch (element.name_role) {
+            switch (element.name_role) {    //проверка роли и добавление объекта согласно роли
                 case "Fabric_RolePolygon":
                     var fabric = new Fabric(this.scale, 'fabric');
                     fabric.get_cargo_data(element.role_data);
                     this.fabrics.push(fabric);
                     break;
                 case "Village_RolePolygon":
-                    if (element.description === "Деревня") {
-                        this.villages.push(new Village(this.scale, 'village'));
+                    if (element.description !== "Магазин") {
+                        switch (element.description) {
+                            case "Окуловка":
+                                this.villages.push(new Village(this.scale, 'okulovka'));
+                                break;
+                            case "Гадюкино":
+                                this.villages.push(new Village(this.scale, 'gaducino'));
+                                break;
+                            case "Лосево":
+                                this.villages.push(new Village(this.scale, 'losevo'));
+                                break;
+                            case "Сосновка":
+                                this.villages.push(new Village(this.scale, 'sosnovka'));
+                                break;
+                            default:
+                                this.villages.push(new Village(this.scale, 'village'));
+                                break;
+                        }
+
                     } else if (element.description === "Магазин") {
                         this.villages.push(new Village(this.scale, 'market'));
                     }
@@ -67,6 +104,11 @@ class Map{
             }
         })
     }
+    /**
+     * @author ArtiKhog
+     * @params players_data     данные об игроках из json
+     * Функция для добавления объектов игроков из полученных данных
+     */
     add_moving_objects(players_data) {
         const moving_objects_array = Object.values(players_data);
         moving_objects_array.forEach(element => {
@@ -83,6 +125,11 @@ class Map{
             }
         })
     }
+    /**
+     * @author ArtiKhog
+     * Функция для отрисовки всех объектов.
+     * Важен порядок. Те объекты, которые отрисовываются раньше будут отрисовываться под новыми объектами
+     */
     draw_all_objects() {
         this.draw_starts();
         this.draw_fabrics();
@@ -91,6 +138,10 @@ class Map{
         this.draw_moving_object();
         this.draw_boxes();
     }
+    /**
+     * @author ArtiKhog
+     * Функция для добавления элементов полигона из данных
+     */
     draw_starts() {
         for (let i = 0; i < this.starts.length; i++) {
             this.starts[i].draw();
