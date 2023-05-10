@@ -219,7 +219,6 @@ class Map{
                     break;
                 case "Fire_RolePolygon":
                     this.fires[fires_i].set_data(element);
-                    console.log(fires_i + ' ' + element.role_data.is_indication)
                     fires_i++;
                     break;
             }
