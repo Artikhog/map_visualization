@@ -35,7 +35,9 @@ function get_objects(map) {
                 status: response.status
             })
         ).then(res => {
-            map.add_moving_objects(res.data.team_info.PepegaTeam.players);
+
+            const team_value = Object.values(res.data.team_info)
+            map.add_moving_objects(team_value[0].players);
             map.add_polygon_objects(res.data.polygon_info);
         }).catch(function (e) {
             console.log(e)
@@ -49,13 +51,14 @@ function get_info(map) {
                 status: response.status
             })
         ).then(res => {
-
+            const team_value = Object.values(res.data.team_info)
+            const polygon_value = Object.values(res.data.polygon_info)
             // document.getElementById('description').innerText = res.data.server_info.game_description
-            document.getElementById('team_name').innerText = `${res.data.team_info.PepegaTeam.name_team}`
-            document.getElementById('team_city').innerText = `${res.data.team_info.PepegaTeam.city_team}`
-            document.getElementById('points').innerText = `${res.data.team_info.PepegaTeam.balls_team}`
+            document.getElementById('team_name').innerText = `${team_value[0].name_team}`
+            document.getElementById('team_city').innerText = `${team_value[0].city_team}`
+            document.getElementById('points').innerText = `${team_value[0].balls_team}`
             document.getElementById('time').innerText = `${res.data.server_info.gameTime}`
-            map.parse_data(res.data.team_info.PepegaTeam.players, res.data.polygon_info);
+            map.parse_data(team_value[0].players, polygon_value);
         }).catch(function (e) {
             console.log(e)
         }));

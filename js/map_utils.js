@@ -148,6 +148,10 @@ class Map{
             this.map_container.addChild(this.starts[i].bitmap);
         }
     }
+    /**
+     * @author ArtiKhog
+     * Функция для добавления коптеров и машинок из данных
+     */
     draw_moving_object() {
         for (let i = 0; i < this.moving_objects.length; i++) {
             this.moving_objects[i].draw();
@@ -189,7 +193,10 @@ class Map{
             this.map_container.addChild(moving.cargo.bitmap);
         });
     }
-
+    /**
+     * @author ArtiKhog
+     * Функция парсинга данных из json
+     */
     parse_data(players_data, polygon_data) {
         const polygon_objects_array = Object.values(polygon_data);
         let fabric_i = 0;
@@ -239,6 +246,11 @@ class Map{
     }
 }
 
+/**
+ * @author ArtiKhog
+ * Класс обычного объекта полигона (стартовая площадка). Его наследуют более сложные объекты
+ */
+
 class Polygon_Object{
     constructor(scale, type, scale_koef = 0.7, locus_x = 5.5, locus_y = 5.5) {
         this.x = 0;
@@ -264,6 +276,10 @@ class Polygon_Object{
     }
 }
 
+/**
+ * @author ArtiKhog
+ * Класс для передвигающихся объектов: машинок, коптеров
+ */
 class Moving_Object extends Polygon_Object {
     constructor(scale, type, scale_koef = 0.3) {
         super(scale, type, scale_koef);
@@ -272,7 +288,12 @@ class Moving_Object extends Polygon_Object {
         this.cargo = new Box(0, '')
         this.color_cargo = ''
     }
-    set_cargo(data) {
+    /**
+     * @author ArtiKhog
+     * @params data  данные об объекте
+     * Функция для создания груза радом с данным объектом
+     */
+    get_cargo_data(data) {
         if (this.is_cargo) {
             this.color_cargo = rgb_parser(data.color_cargo);
             if (this.cargo.scale === 0) {
@@ -299,7 +320,7 @@ class Moving_Object extends Polygon_Object {
         this.y = -data.current_pos[1];
         this.angle = data.current_pos[3]
         this.is_cargo = data.is_cargo;
-        this.set_cargo(data);
+        this.get_cargo_data(data);
 
         // if (this.is_cargo && !this.cargo_init_flag) {
         //     this.init_cargo(rgb_parser(data.color_cargo) + '_box');
@@ -312,6 +333,10 @@ class Moving_Object extends Polygon_Object {
     }
 }
 
+/**
+ * @author ArtiKhog
+ * Класс фабрики
+ */
 class Fabric extends Polygon_Object {
     constructor(scale, type, scale_koef = 0.7) {
         super(scale, type, scale_koef);
@@ -321,17 +346,21 @@ class Fabric extends Polygon_Object {
         this.conditions = 0;
         this.cargo_array = [];
     }
+    /**
+     * @author ArtiKhog
+     * Функция
+     */
     get_cargo_data(role_data) {
         this.cargo_color = rgb_parser(role_data.current_cargo_color);
         this.is_cargo = role_data.is_cargo;
         this.conditions = role_data.current_conditions;
         this.set_num_cargo(role_data.num_cargo);
     }
-    create_cargo() {
-        for (let i = 0; i < this.num_cargo; i++) {
-            this.cargo_array.push(new Box(this.scale, this.cargo_color));
-        }
-    }
+    /**
+     * @author ArtiKhog
+     * @params num_cargo  количество грузов на фабрике
+     * Функция для создания/удаления грузов
+     */
     set_num_cargo(new_num_cargo) {
         if (this.num_cargo < new_num_cargo ) {
             for (let i = this.num_cargo; i < new_num_cargo; i++) {
@@ -352,6 +381,10 @@ class Fabric extends Polygon_Object {
         }, 200);
         this.draw_cargo();
     }
+    /**
+     * @author ArtiKhog
+     * Функция для прорисовки грузов. Тут же прорисовка грузов по кругу
+     */
     draw_cargo() {
         const rads = 2 * Math.PI / this.cargo_array.length;
         const radius = this.scale_koef * 1.5
@@ -373,6 +406,11 @@ class Fabric extends Polygon_Object {
     }
 }
 
+/**
+ * @author ArtiKhog
+ * Класс деревни он же используется для магазинов.
+ * Класс схож с классом фабрики изменен только способ хранения и получения данных о грузе
+ */
 class Village extends Polygon_Object {
     constructor(scale, type, scale_koef = 0.8) {
         super(scale, type, scale_koef);
@@ -421,7 +459,10 @@ class Village extends Polygon_Object {
         });
     }
 }
-
+/**
+ * @author ArtiKhog
+ * Класс огня. В нем используется 3 bitmap: для самого огня, для индикации, для потушенного огня
+ */
 class Fire extends Polygon_Object{
     constructor(scale, type, scale_koef = 0.7) {
         super(scale, type, scale_koef);
@@ -452,7 +493,6 @@ class Fire extends Polygon_Object{
 
         this.draw_indication(this.is_indication);
         this.draw_dead(this.is_alive)
-
     }
     set_data(data) {
         this.x = data.current_pos[0];
@@ -461,6 +501,10 @@ class Fire extends Polygon_Object{
         this.is_indication = data.role_data.is_indication;
         this.is_alive = data.role_data.is_alive;
     }
+    /**
+     * @author ArtiKhog
+     * Функция проверяет найден ли огонь и показывает bitmap индикации
+     */
     draw_indication(is_indication) {
         if (is_indication) {
             this.indication_bitmap.alpha = 1;
@@ -468,6 +512,10 @@ class Fire extends Polygon_Object{
             this.indication_bitmap.alpha = 0;
         }
     }
+    /**
+     * @author ArtiKhog
+     * Функция проверяет потушен ли огонь и показывает bitmap потушенного огня
+     */
     draw_dead(is_alive) {
         if (!is_alive) {
             this.dead_bitmap.alpha = 1;
@@ -477,6 +525,11 @@ class Fire extends Polygon_Object{
     }
 }
 
+
+/**
+ * @author ArtiKhog
+ * Класс груза. Оболчка для bitmap груза
+ */
 class Box{
     constructor(scale, color, scale_koef = 0.5, locus_x = 5.5, locus_y = 5.5) {
         this.x = 0;
@@ -494,10 +547,17 @@ class Box{
         this.bitmap = new createjs.Bitmap(document.getElementById(type));
         resize_bitmap(this.bitmap, this.scale, document.getElementById(type).naturalHeight, document.getElementById(type).naturalWidth, this.scale_koef);
     }
+    /**
+     * @author ArtiKhog
+     * @param x_offset смещение по x координате от исходного объекта
+     * @param y_offset смещение по y координате от исходного объекта
+     * @param regX смещение по x координате bitmap исходного объекта
+     * @param regY смещение по y координате bitmap исходного объекта
+     */
     draw(x_offset, y_offset, regX, regY) {
+        this.bitmap.x = (this.locus_x + this.x) * this.scale
+        this.bitmap.y = (this.locus_y + this.y) * this.scale
         createjs.Tween.get(this.bitmap).to({
-            x: (this.locus_x + this.x) * this.scale,
-            y: (this.locus_y + this.y) * this.scale,
             regX: x_offset * this.scale + regX,
             regY: y_offset * this.scale + regY,
             rotation: this.angle * 180 / Math.PI,
@@ -547,6 +607,11 @@ function add_keyboard(map, drone_number) {
     }
 }
 
+/**
+ * @author ArtiKhog
+ * @param rgb_array массив из 3 чисел представляющий rgb
+ * Функция для получения нужного цвета из массива
+ */
 function rgb_parser(rgb_array) {
     if (rgb_array[0] === 255 && rgb_array[1] === 255 && rgb_array[2] === 0) {
         return 'yellow';
