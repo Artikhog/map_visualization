@@ -6,7 +6,7 @@ class Map{
         this.meter_size = meter_size; //размер реальной карты в метрах
         this.scale = size / meter_size; //маштаб между реальным и пикселями
         this.map_container = new createjs.Container(); // контейнер для элементов, крепится к stage
-        this.background = new createjs.Bitmap(document.getElementById('phase4_background')); // картинка для фона карты
+        this.background = new createjs.Bitmap(document.getElementById('phase2_background')); // картинка для фона карты
         this.moving_objects = []; //
         this.starts = [];
         this.fires = [];
@@ -14,6 +14,12 @@ class Map{
         this.villages = [];
         this.boxes = [];
         this.init();
+        this.drone_scale = 0.5;  //Коэффициент для дронов
+        this.car_scale = 0.6;    //Коэффициент для машинок
+        this.fabric_scale = 1;   //Коэффициент для фабрик
+        this.village_scale = 0.9;//Коэффициент для деревень
+        this.starts_scale = 0.8; //Коэффициент для стартовых площадок
+        this.box_scale = 0.5;    //Коэффициент для коробок (работает некорректно, при увеличении, радиус от фабрики увеличивается)
     }
     /**
      * Функция изменения размеров фона под карту
@@ -46,13 +52,13 @@ class Map{
      * @author   ArtiKhog
      */
     draw_grid() {
-        for (let i = 1; i < this.meter_size; i++) {
+        for (let i = 0; i < this.meter_size; i++) {
             var line = new createjs.Shape();
             line.graphics.beginStroke("white");
-            line.graphics.moveTo(this.scale * i, 0);
-            line.graphics.lineTo(this.scale * i, this.size);
-            line.graphics.moveTo(0, this.scale * i);
-            line.graphics.lineTo(this.size, this.scale * i);
+            line.graphics.moveTo(this.scale * (i + 0.5), 0);
+            line.graphics.lineTo(this.scale * (i + 0.5), this.size);
+            line.graphics.moveTo(0, this.scale * (i + 0.5));
+            line.graphics.lineTo(this.size, this.scale * (i + 0.5));
             this.map_container.addChild(line);
         }
     }
@@ -67,7 +73,7 @@ class Map{
         polygon_objects_array.forEach(element => {
             switch (element.name_role) {    //проверка роли и добавление объекта согласно роли
                 case "Fabric_RolePolygon":
-                    var fabric = new Fabric(this.scale, 'fabric');
+                    var fabric = new Fabric(this.scale, 'fabric', this.fabric_scale, this.box_scale);
                     fabric.get_cargo_data(element.role_data);
                     this.fabrics.push(fabric);
                     break;
@@ -75,28 +81,28 @@ class Map{
                     if (element.description !== "Магазин") {
                         switch (element.description) {
                             case "Окуловка":
-                                this.villages.push(new Village(this.scale, 'okulovka'));
+                                this.villages.push(new Village(this.scale, 'okulovka', this.village_scale, this.box_scale));
                                 break;
                             case "Гадюкино":
-                                this.villages.push(new Village(this.scale, 'gaducino'));
+                                this.villages.push(new Village(this.scale, 'gaducino', this.village_scale, this.box_scale));
                                 break;
                             case "Лосево":
-                                this.villages.push(new Village(this.scale, 'losevo'));
+                                this.villages.push(new Village(this.scale, 'losevo', this.village_scale, this.box_scale));
                                 break;
                             case "Сосновка":
-                                this.villages.push(new Village(this.scale, 'sosnovka'));
+                                this.villages.push(new Village(this.scale, 'sosnovka', this.village_scale, this.box_scale));
                                 break;
                             default:
-                                this.villages.push(new Village(this.scale, 'village'));
+                                this.villages.push(new Village(this.scale, 'village', this.village_scale, this.box_scale));
                                 break;
                         }
 
                     } else if (element.description === "Магазин") {
-                        this.villages.push(new Village(this.scale, 'market'));
+                        this.villages.push(new Village(this.scale, 'market', this.village_scale, this.box_scale));
                     }
                     break;
                 case "TakeoffArea_RolePolygon":
-                    this.starts.push(new Polygon_Object(this.scale, `start${starts_i}`));
+                    this.starts.push(new Polygon_Object(this.scale, `start${starts_i}`, this.starts_scale, ));
                     starts_i++
                     break;
                 case "Fire_RolePolygon":
@@ -114,13 +120,13 @@ class Map{
         moving_objects_array.forEach(element => {
             switch (element.name_object_controll) {
                 case "TestObject":
-                    this.moving_objects.push(new Moving_Object(this.scale, 'drone'));
+                    this.moving_objects.push(new Moving_Object(this.scale, 'drone', this.drone_scale, this.box_scale));
                     break;
                 case "PioneerObject":
-                    this.moving_objects.push(new Moving_Object(this.scale, 'drone', 0.5));
+                    this.moving_objects.push(new Moving_Object(this.scale, 'drone', this.drone_scale, this.box_scale));
                     break;
                 case "EduBotObject":
-                    this.moving_objects.push(new Moving_Object(this.scale, 'car', 0.6));
+                    this.moving_objects.push(new Moving_Object(this.scale, 'car', this.car_scale, this.box_scale));
                     break;
             }
         })
@@ -280,11 +286,12 @@ class Polygon_Object{
  * Класс для передвигающихся объектов: машинок, коптеров
  */
 class Moving_Object extends Polygon_Object {
-    constructor(scale, type, scale_koef = 0.3) {
+    constructor(scale, type, scale_koef = 0.3, box_scale=0.5) {
         super(scale, type, scale_koef);
         this.angle = 0;
+        this.box_scale = box_scale;
         this.is_cargo = false;
-        this.cargo = new Box(0, '')
+        this.cargo = new Box(0, '', this.box_scale)
         this.color_cargo = ''
     }
     /**
@@ -295,8 +302,8 @@ class Moving_Object extends Polygon_Object {
     get_cargo_data(data) {
         if (this.is_cargo) {
             this.color_cargo = rgb_parser(data.color_cargo);
-            if (this.cargo.scale === 0) {
-                this.cargo = new Box(this.scale, this.color_cargo);
+            if (this.cargo.scale === 0 || this.cargo.color !== this.color_cargo) {
+                this.cargo = new Box(this.scale, this.color_cargo, this.box_scale);
             }
             this.cargo.set_coordinates(this.x, this.y, this.angle);
         } else {
@@ -311,7 +318,7 @@ class Moving_Object extends Polygon_Object {
         }, 200);
         if (this.is_cargo) {
             this.cargo.set_coordinates(this.x, this.y, this.angle);
-            this.cargo.draw(0.5, -0.5, this.bitmap.regX, this.bitmap.regY);
+            this.cargo.draw(0.5*this.scale, -0.5*this.scale, this.bitmap.regX, this.bitmap.regY);
         }
     }
     set_data(data) {
@@ -337,13 +344,14 @@ class Moving_Object extends Polygon_Object {
  * Класс фабрики
  */
 class Fabric extends Polygon_Object {
-    constructor(scale, type, scale_koef = 0.7) {
+    constructor(scale, type, scale_koef = 0.7, box_scale=0.5) {
         super(scale, type, scale_koef);
         this.num_cargo = 0;
         this.cargo_color = '';
         this.is_cargo = false;
         this.conditions = 0;
         this.cargo_array = [];
+        this.box_scale = box_scale;
     }
     /**
      * @author ArtiKhog
@@ -363,7 +371,7 @@ class Fabric extends Polygon_Object {
     set_num_cargo(new_num_cargo) {
         if (this.num_cargo < new_num_cargo ) {
             for (let i = this.num_cargo; i < new_num_cargo; i++) {
-                this.cargo_array.push(new Box(this.scale, this.cargo_color));
+                this.cargo_array.push(new Box(this.scale, this.cargo_color, this.box_scale));
             }
         } else if (this.num_cargo > new_num_cargo) {
             for (let i = this.num_cargo; i > new_num_cargo; i--) {
@@ -386,7 +394,7 @@ class Fabric extends Polygon_Object {
      */
     draw_cargo() {
         const rads = 2 * Math.PI / this.cargo_array.length;
-        const radius = this.scale_koef * 1.5
+        const radius = this.scale_koef * 1.5 * this.scale;
         let rotation_angle, cargo_bitmap_x, cargo_bitmap_y
         for (let i = 0; i < this.cargo_array.length; i++) {
             rotation_angle = rads + Math.PI / 4 + rads * i;
@@ -411,18 +419,19 @@ class Fabric extends Polygon_Object {
  * Класс схож с классом фабрики изменен только способ хранения и получения данных о грузе
  */
 class Village extends Polygon_Object {
-    constructor(scale, type, scale_koef = 0.8) {
+    constructor(scale, type, scale_koef = 0.8, box_scale=0.5) {
         super(scale, type, scale_koef);
         this.cargo_num = [];
         this.cargo_color = [];
         this.cargo_flag = [false, false, false, false];
         this.cargo_array = [];
+        this.box_scale = box_scale;
     }
     set_num_cargo() {
         for (let i = 0; i < this.cargo_num.length; i++) {
             if (this.cargo_num[i] > 0) {
                 if (!this.cargo_flag[i]) {
-                    this.cargo_array.push(new Box(this.scale, this.cargo_color[i]));
+                    this.cargo_array.push(new Box(this.scale, this.cargo_color[i], this.box_scale));
                     this.cargo_flag[i] = true;
                 }
             }
@@ -438,7 +447,7 @@ class Village extends Polygon_Object {
     }
     draw_cargo() {
         const rads = 2 * Math.PI / this.cargo_array.length;
-        const radius = this.scale_koef * 1.5
+        const radius = this.scale_koef * 1.5 * this.scale;
         let rotation_angle, cargo_bitmap_x, cargo_bitmap_y
         for (let i = 0; i < this.cargo_array.length; i++) {
             rotation_angle = rads + rads * i;
@@ -557,10 +566,10 @@ class Box{
         this.bitmap.x = (this.locus_x + this.x) * this.scale
         this.bitmap.y = (this.locus_y + this.y) * this.scale
         createjs.Tween.get(this.bitmap).to({
-            regX: x_offset * this.scale + regX,
-            regY: y_offset * this.scale + regY,
+            regX: x_offset + regX,
+            regY: y_offset + regY,
             rotation: this.angle * 180 / Math.PI,
-        }, 200);
+        }, 500);
     }
     set_coordinates(x, y, angle) {
         this.x = x;
@@ -589,11 +598,6 @@ function add_keyboard(map, drone_number) {
             case 'KeyE':
                 map.moving_objects[drone_number].angle += 0.15;
                 break;
-            case 'KeyF':
-                map.moving_objects[drone_number].set_cargo(map.fabrics[1].cargo_array[2]);
-                console.log(map.moving_objects[drone_number].cargo);
-                map.fabrics[1].set_num_cargo(0);
-                break;
             case 'KeyG':
                 console.log(map.fabrics[1].num_cargo)
                 map.fabrics[1].set_num_cargo(0)
@@ -602,6 +606,9 @@ function add_keyboard(map, drone_number) {
             case 'KeyH':
                 map.fires[0].is_alive = false;
                 break
+            case 'KeyF':
+                map.moving_objects[2].x = 2;
+                break;
         }
     }
 }
