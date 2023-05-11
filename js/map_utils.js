@@ -619,7 +619,7 @@ function add_keyboard(map, drone_number) {
  * Функция для получения нужного цвета из массива
  */
 function rgb_parser(rgb_array) {
-    if (rgb_array[0] === 255 && rgb_array[1] === 255 && rgb_array[2] === 0) {
+    if (rgb_array[0] === 255 && rgb_array[1] === 185 && rgb_array[2] === 0) {
         return 'yellow';
     } else if (rgb_array[0] === 0 && rgb_array[1] === 255 && rgb_array[2] === 0) {
         return 'green';
